@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo liuhongbo@dip-ai.com
  * @Date: 2023-06-07 10:40:01
- * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-11 18:12:47
+ * @LastEditors: liuhongbo 916196375@qq.com
+ * @LastEditTime: 2023-06-16 17:12:58
  * @FilePath: /daily_work_front/src/utils/routers.ts
  * @Description: 路由
  */
@@ -26,9 +26,9 @@ export const generateRoute = (path: string, data: Record<string, string | number
     return text
 }
 
-const url = (url: string, prefix?: string) => {
-    prefix = prefix?.charAt(0) === '/' ? `/${prefix}` : prefix
-    url = url.charAt(0) === '/' ? `/${url}` : url
+const url = (url: string, prefix: string = '') => {
+    prefix = prefix && prefix?.charAt(0) !== '/' ? `/${prefix}` : prefix
+    url = url.charAt(0) !== '/' ? `/${url}` : url
     return `${prefix}${url}`
 }
 
