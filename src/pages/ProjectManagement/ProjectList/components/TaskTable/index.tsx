@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-18 23:02:31
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-21 17:55:04
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\TaskTable\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -10,11 +10,10 @@ import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components'
 import { Button, Tag } from 'antd'
 import React, { MutableRefObject, Ref, RefObject, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { TaskStatusEnum, generateTaskTableData, plusIcon, searchCellTask, taskStatusConfig } from './const'
-import { getColumns, getTaskList } from '@/services/projectManagement'
+import { deleteTask, getColumns, getTaskList, updateTask } from '@/services/projectManagement'
 import { HttpStatusCode } from 'axios'
 import TaskModal from '../TaskModal'
 import { PlusOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import ReactDOM from 'react-dom'
 
 interface Props {
   activeKey: string
@@ -41,13 +40,11 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
 
   // 处理鼠标进入任务单元格
   const handlePlusIconMouseEnter = (record, column) => {
-    // const currentTask = searchCellTask(record, column)
-    const currentTask = record
+    const currentTask = record[column.columnId]
     // 如果当前单元格没有任务, 则不显示增加任务图标
     if (!currentTask) return
-    const cell = document.getElementById(`task-cell-${currentTask.taskId}`);
+    const cell = document.getElementById(`task-cell-${currentTask.taskId}`)?.parentElement;
     const cellRect = cell.getBoundingClientRect();
-
     const rightPlusIcon = document.createElement('div'); // 右侧增加任务图标
     const buttomPlusIcon = document.createElement('div'); // 底部增加任务图标
     // 设置增加任务图标公共属性
@@ -70,7 +67,7 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
     }
     // 底部增加任务图标
     buttomPlusIcon.style.left = `${cellRect.left + cellRect.width / 2 - 8}px`;
-    buttomPlusIcon.style.top = `${cellRect.bottom + 8}px`;
+    buttomPlusIcon.style.top = `${cellRect.bottom + 8 - 16}px`;
     buttomPlusIcon.onclick = (event) => {
       setIsOpenTaskModal(true);
       setCurrentTaskId(currentTask.taskId)
@@ -104,23 +101,20 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
         title: column.columnName,
         dataIndex: column.columnId,
         onCell: (record: any, rowIndex: number) => {
-          console.log('record', record, rowIndex)
           return {
-            rowSpan: Object.values(record)[columnIndex]?.colspan || 1,
+            rowSpan: Object.values(record)[columnIndex]?.rowSpan,
+            colSpan: 1,
             onMouseEnter: (event) => { handlePlusIconMouseEnter(record, column) },
             onMouseLeave: (event) => { handlePlusIconMouseLeave(event) },
           };
         },
         render(dom, entity, index, action, schema) {
-          const currentTask = entity
-          console.log('domg', dom)
           return (<div id={`task-cell-${dom.taskId}`}>
             {dom.taskName}
           </div>)
         },
       }
     })
-    console.log('columns', columns)
     return columns
   }
 
@@ -130,19 +124,20 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       title: '状态',
       dataIndex: 'status',
       render(dom, entity, index, action, schema) {
-        const currentTaskConfig = taskStatusConfig[TaskStatusEnum[entity.status] as keyof typeof taskStatusConfig]
-        // return <Tag color={currentTaskConfig.color}>{currentTaskConfig.text}</Tag>
-        return null
+        const currentTask = Object.values(entity).at(-1)
+        const currentTaskConfig = taskStatusConfig[TaskStatusEnum[currentTask.status] as keyof typeof taskStatusConfig]
+        return <Tag color={currentTaskConfig.color}>{currentTaskConfig.text}</Tag>
       },
     },
     {
       title: '操作',
       valueType: 'option',
       render(dom, entity, index, action, schema) {
+        const currentTask = Object.values(entity).at(-1)
         return [
-          <Button type='link'>完成</Button>,
-          <Button type='link'>编辑</Button>,
-          <Button type='link'>删除</Button>,
+          <Button type='link' onClick={() => handleDoneTask(currentTask.taskId)}>完成</Button>,
+          <Button type='link' onClick={() => handleEditTask(currentTask.taskId)}>编辑</Button>,
+          <Button type='link' onClick={() => handleDeleteTask(currentTask.taskId)}>删除</Button>,
         ]
       },
     }
@@ -151,16 +146,22 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   // 完成任务的回调
   const handleDoneTask = async (tid: string) => {
     try {
-
+      const { code } = await updateTask({ taskId: tid, status: TaskStatusEnum.Completed })
+      if (code === HttpStatusCode.Ok) {
+        actionRef.current?.reload()
+      }
     } catch (error) {
       console.log('error', error)
     }
   }
 
   // 删的回调
-  const handleDeleteTask = async (tid: string) => {
+  const handleDeleteTask = async (taskId: string) => {
     try {
-
+      const { code } = await deleteTask({ taskId })
+      if (code === HttpStatusCode.Ok) {
+        actionRef.current?.reload()
+      }
     } catch (error) {
       console.log('error', error)
     }
@@ -176,14 +177,12 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       const { code: columnsCode, result: columnsReuslt } = await getColumns({ projectId: activeKey })
       if (columnsCode === HttpStatusCode.Ok) {
         const dynamicColumns = generateColumns(columnsReuslt)
-        console.log([...dynamicColumns, ...initColumn], '[...dynamicColumns, ...initColumn]')
         setColumns([...dynamicColumns, ...initColumn])
       }
       const { result = [], code } = await getTaskList({ projectId: activeKey })
       if (code === HttpStatusCode.Ok) {
         setDataSource(result)
         const newDataSouce = generateTaskTableData(result)
-        console.log('newDataSouce', newDataSouce)
         return { data: newDataSouce, success: true, total: result?.length }
       }
       return noData
@@ -198,7 +197,6 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
     !dataSource.length ? handleGetTaskList() : actionRef.current?.reload()
   }
 
-
   return (
     <div>
       {
@@ -208,10 +206,8 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
         columns={columns}
         request={(par) => handleGetTaskList(par)}
         actionRef={actionRef}
-        expandable={{
-          childrenColumnName: 'children123',
-        }}
-      /> : null}
+      />
+        : null}
       {
         isOpenTaskModal && <TaskModal parentTaskId={parentTaskId} currentProjectId={activeKey} isOpen={isOpenTaskModal} onClose={handleCloseTaskModal} taskId={currentTaskId} />
       }
