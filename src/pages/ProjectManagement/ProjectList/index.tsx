@@ -2,17 +2,18 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
  * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-17 12:10:49
+ * @LastEditTime: 2023-06-22 17:51:52
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AEu
  */
-import { Modal, TabPaneProps, Tabs } from 'antd'
+import { Modal, Result, TabPaneProps, Tabs } from 'antd'
 import React, { Ref, useEffect, useRef, useState } from 'react'
 import ProjectTaskTable from './components/TaskTable'
 import { deleteProject, getProjectList } from '@/services/projectManagement'
 import { HttpStatusCode } from 'axios'
 import { Project, ProjectListTab } from './const'
 import ProjectModal from './components/ProjectModal'
+import { SmileOutlined } from '@ant-design/icons'
 
 const PrjectList = () => {
     const [tabsItems, setTabsItems] = useState<ProjectListTab[]>([])
@@ -82,7 +83,13 @@ const PrjectList = () => {
     return (
         <div>
             <Tabs type='editable-card' onEdit={handleEditProject} items={tabsItems} onChange={handleTabChange} activeKey={activeKey} />
-            <ProjectTaskTable ref={tableRef} activeKey={activeKey} />
+            {!tabsItems.length ?
+                <Result
+                    icon={<SmileOutlined />}
+                    title="欢迎使用 Daily Work 请先添加项目!"
+                />
+                : null}
+            {tabsItems.length ? <ProjectTaskTable ref={tableRef} activeKey={activeKey} /> : null}
             {
                 isOpenProjectModal && <ProjectModal isOpen={isOpenProjectModal} projectId={currentClickProjectId} onClose={handleCloseProjectModal} />
             }

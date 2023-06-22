@@ -5,3 +5,5 @@ export interface AddProjectParams {
     finishTime?: string
     notion?: string
 }
+
+export type TaskModalMode = 'add' | 'update' | 'readonly'

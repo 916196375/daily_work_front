@@ -2,7 +2,7 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-17 10:56:04
  * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-18 18:32:00
+ * @LastEditTime: 2023-06-22 00:26:27
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\components\ProjectModal\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -54,14 +54,12 @@ const ProjectModal = (props: Props) => {
         title={projectId ? '编辑项目' : '新增项目'}
       >
         <ProFormText
-          width="md"
           name="projectName"
           label="项目名称"
           placeholder="请输入项目名称"
           rules={isRequired('请输入项目名称')}
         />
         <ProFormTextArea
-          width='md'
           name='description'
           label='项目描述'
           placeholder='请输入项目描述'
@@ -69,7 +67,6 @@ const ProjectModal = (props: Props) => {
         <ProFormDatePicker name="startTime" label="开始日期" />
         <ProFormDatePicker name="finishTime" label="结束日期" />
         <ProFormTextArea
-          width='md'
           name='notion'
           label='备注'
           placeholder='请输入备注'

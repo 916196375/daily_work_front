@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
- * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-21 17:55:04
+ * @LastEditors: liuhongbo 916196375@qq.com
+ * @LastEditTime: 2023-06-22 00:16:35
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\TaskTable\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -14,6 +14,7 @@ import { deleteTask, getColumns, getTaskList, updateTask } from '@/services/proj
 import { HttpStatusCode } from 'axios'
 import TaskModal from '../TaskModal'
 import { PlusOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { TaskModalMode } from '../ProjectModal/const'
 
 interface Props {
   activeKey: string
@@ -25,11 +26,12 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   const [isOpenTaskModal, setIsOpenTaskModal] = useState<boolean>(false)
   const [currentTaskId, setCurrentTaskId] = useState<string>('')
   const [parentTaskId, setParentTaskId] = useState<string>('')
-  const [dataSource, setDataSource] = useState<any[]>([])
+  const [taskTreeData, setTaskTreeData] = useState<any[]>([])
+  const [taskModalMode, setTaskModalMode] = useState<TaskModalMode>()
   const actionRef = useRef<ActionType>()
 
   useEffect(() => {
-    !dataSource.length ? handleGetTaskList() : actionRef.current?.reload()
+    !taskTreeData.length ? handleGetTaskList() : actionRef.current?.reload()
   }, [activeKey])
 
   useImperativeHandle(ref, () => ({
@@ -64,6 +66,7 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       setIsOpenTaskModal(true);
       setCurrentTaskId(currentTask.taskId)
       setParentTaskId(currentTask.taskId)
+      setTaskModalMode('add')
     }
     // 底部增加任务图标
     buttomPlusIcon.style.left = `${cellRect.left + cellRect.width / 2 - 8}px`;
@@ -72,6 +75,7 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       setIsOpenTaskModal(true);
       setCurrentTaskId(currentTask.taskId)
       setParentTaskId(currentTask.parentTaskId)
+      setTaskModalMode('add')
     }
     // 渲染增加任务图标
     document.body.appendChild(rightPlusIcon);
@@ -136,7 +140,7 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
         const currentTask = Object.values(entity).at(-1)
         return [
           <Button type='link' onClick={() => handleDoneTask(currentTask.taskId)}>完成</Button>,
-          <Button type='link' onClick={() => handleEditTask(currentTask.taskId)}>编辑</Button>,
+          <Button type='link' onClick={() => handleEditTask(entity, currentTask)}>编辑</Button>,
           <Button type='link' onClick={() => handleDeleteTask(currentTask.taskId)}>删除</Button>,
         ]
       },
@@ -167,8 +171,11 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
     }
   }
 
-  const handleEditTask = async (tid: string) => {
-
+  const handleEditTask = async (record: any[], task: any) => {
+    setCurrentTaskId(task.taskId)
+    setParentTaskId(task.parentTaskId)
+    setTaskModalMode('update')
+    setIsOpenTaskModal(true)
   }
 
   const handleGetTaskList = async (par?: any) => {
@@ -181,7 +188,7 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       }
       const { result = [], code } = await getTaskList({ projectId: activeKey })
       if (code === HttpStatusCode.Ok) {
-        setDataSource(result)
+        setTaskTreeData(result)
         const newDataSouce = generateTaskTableData(result)
         return { data: newDataSouce, success: true, total: result?.length }
       }
@@ -194,22 +201,27 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
 
   const handleCloseTaskModal = () => {
     setIsOpenTaskModal(false)
-    !dataSource.length ? handleGetTaskList() : actionRef.current?.reload()
+    !taskTreeData.length ? handleGetTaskList() : actionRef.current?.reload()
   }
 
   return (
     <div>
       {
-        !dataSource.length ? <Button type='dashed' onClick={() => setIsOpenTaskModal(true)}>添加任务</Button> : null
+        !taskTreeData.length ? <Button type='dashed' onClick={() => {setIsOpenTaskModal(true);setTaskModalMode('add')}}>添加任务</Button> : null
       }
-      {dataSource.length ? <ProTable
-        columns={columns}
-        request={(par) => handleGetTaskList(par)}
-        actionRef={actionRef}
-      />
-        : null}
+      {taskTreeData.length
+        ? <ProTable
+          columns={columns}
+          request={(par) => handleGetTaskList(par)}
+          actionRef={actionRef}
+          rowKey={(record, index) => { return Object.values(record).at(-1).taskId + index }}
+          search={false}
+          options={false}
+        />
+        : null
+      }
       {
-        isOpenTaskModal && <TaskModal parentTaskId={parentTaskId} currentProjectId={activeKey} isOpen={isOpenTaskModal} onClose={handleCloseTaskModal} taskId={currentTaskId} />
+        isOpenTaskModal && <TaskModal taskModalMode={taskModalMode}  taskTreeData={taskTreeData} parentTaskId={parentTaskId} currentProjectId={activeKey} isOpen={isOpenTaskModal} onClose={handleCloseTaskModal} taskId={currentTaskId} />
       }
     </div>
   )

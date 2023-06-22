@@ -2,16 +2,20 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-17 12:15:31
  * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-18 20:54:28
+ * @LastEditTime: 2023-06-22 18:03:26
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\components\TaskModal\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { isRequired } from '@/utils/form'
-import { ModalForm, ProFormCascader, ProFormDatePicker, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
-import { Form, Modal } from 'antd'
+import { ModalForm, ProForm, ProFormCascader, ProFormDatePicker, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
+import { Button, Form, Input, Modal, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { AddTaskForm } from './const'
-import { addProject, addTask } from '@/services/projectManagement'
+import { AddTaskForm, findParentTask } from './const'
+import { addProject, addTask, getTaskDetail, updateTask } from '@/services/projectManagement'
+import { HttpStatusCode } from 'axios'
+import { UpdateTaskParams } from '../TaskTable/const'
+import { TaskModalMode } from '../ProjectModal/const'
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 
 interface Props {
   isOpen: boolean
@@ -20,18 +24,56 @@ interface Props {
   taskId?: string
   currentProjectId: string
   parentTaskId: string
+  taskTreeData: any[]
+  taskModalMode: TaskModalMode
 }
 
 const TaskModal = (props: Props) => {
-  const { isOpen, onClose, onConfirm, taskId, currentProjectId, parentTaskId } = props
+  const { isOpen, onClose, onConfirm, taskId, currentProjectId, parentTaskId, taskTreeData, taskModalMode } = props
   const [form] = Form.useForm()
-  console.log('parentTaskId', parentTaskId)
   useEffect(() => {
     form.setFieldsValue({ parentTaskId: parentTaskId })
+    taskModalMode === 'update' && handleGetTaskDetail(taskId)
   }, [parentTaskId, taskId])
 
-  const handleCommit = async (values: AddTaskForm) => {
+  const handleGetTaskDetail = async (taskId: string) => {
+    const { code, result } = await getTaskDetail({ taskId })
+    if (code === HttpStatusCode.Ok) {
+      const currentTaskPath = findParentTask(taskTreeData, parentTaskId)
+      form.setFieldsValue({ ...result, parentTaskId: currentTaskPath })
+    }
+  }
+
+  const handleUpdateTask = async (values: any) => {
+    const query: UpdateTaskParams = { ...values, projectId: currentProjectId, taskId }
+    if (query.parentTaskId || query.parentTaskId === undefined) {
+      if (query.parentTaskId === undefined) {
+        query.parentTaskId = ''
+      } else {
+        query.parentTaskId = Array.isArray(query.parentTaskId) ? query.parentTaskId.at(-1) ?? '' : query.parentTaskId
+      }
+    }
+    try {
+      const { code } = await updateTask(query)
+      if (code === HttpStatusCode.Ok) {
+        onConfirm && onConfirm()
+        onClose()
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  const handleAddTask = async (values: AddTaskForm) => {
     const query: AddTaskForm = { ...values, projectId: currentProjectId }
+    if ('parentTaskId' in query) {
+      if (query.parentTaskId === undefined) {
+        query.parentTaskId = ''
+      } else {
+        console.log('query.parentTaskId', query.parentTaskId)
+        query.parentTaskId = Array.isArray(query.parentTaskId) ? query.parentTaskId.at(-1) ?? '' : query.parentTaskId
+      }
+    }
     try {
       const { code } = await addTask(query)
       if (code === 200) {
@@ -52,11 +94,11 @@ const TaskModal = (props: Props) => {
           destroyOnClose: true,
           onCancel: onClose,
           onOk: form.submit,
-          okText: taskId ? '保存' : '新增',
+          okText: taskModalMode === 'update' ? '保存' : '新增',
         }}
-        onFinish={handleCommit}
+        onFinish={taskModalMode === 'update' ? handleUpdateTask : handleAddTask}
         layout='horizontal'
-        title={taskId ? '编辑任务' : '新增任务'}
+        title={taskModalMode === 'update' ? '编辑任务' : '新增任务'}
       >
         <ProFormText
           width="md"
@@ -72,30 +114,54 @@ const TaskModal = (props: Props) => {
           placeholder='请输入任务描述'
         />
 
+        <Form.List name="customItemList">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }) => (
+                <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                  <Form.Item
+                    {...restField}
+                    name={[name, 'key']}
+                  >
+                    <Input placeholder="" />
+                  </Form.Item>
+                  <Form.Item
+                    {...restField}
+                    name={[name, 'value']}
+                  >
+                    <Input placeholder="" />
+                  </Form.Item>
+                  <MinusCircleOutlined onClick={() => remove(name)} />
+                </Space>
+              ))}
+              <Form.Item>
+                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                  添加项
+                </Button>
+              </Form.Item>
+            </>
+          )}
+        </Form.List>
         {
           taskId && <ProFormCascader
             name="parentTaskId"
             label="移动任务"
+            placeholder={`若为空则将任务${taskModalMode === 'update' ? '移动' : '新建'}到首列`}
             fieldProps={{
-              options: [
-                {
-                  value: 'zhejiang',
-                  label: 'Zhejiang',
-                  children: [
-                    {
-                      value: 'hangzhou',
-                      label: 'Hangzhou',
-                      children: [
-                        {
-                          value: 'xihu',
-                          label: 'West Lake',
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
+              options: taskTreeData,
+              fieldNames: { label: 'taskName', value: 'taskId', children: 'children' },
+              changeOnSelect: true,
+              notFoundContent: '暂无任务',
             }}
+            rules={[{
+              async validator(_, value) {
+                if (taskModalMode === 'update' && value?.includes(taskId)) {
+                  return Promise.reject('不能将当前节点作为自身父节点!')
+                }
+                return Promise.resolve()
+              }
+            }
+            ]}
           />
         }
         <ProFormDatePicker name="startTime" label="开始日期" />
