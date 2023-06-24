@@ -1,12 +1,9 @@
 export interface Project {
   projectId: string;
   projectName: string;
-  updatedTime: string;
-  createdTime: string;
   startTime: string;
   finishTime: string;
   status: ProjectStatusEnum;
-  creatorId: string;
   description?: string;
 }
 

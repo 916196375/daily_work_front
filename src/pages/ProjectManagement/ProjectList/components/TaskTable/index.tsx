@@ -2,19 +2,20 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
  * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-22 00:16:35
+ * @LastEditTime: 2023-06-24 22:26:19
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\TaskTable\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components'
 import { Button, Tag } from 'antd'
 import React, { MutableRefObject, Ref, RefObject, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { TaskStatusEnum, generateTaskTableData, plusIcon, searchCellTask, taskStatusConfig } from './const'
+import { Task, TaskColumn, TaskStatusEnum, TaskTableData, generateTaskTableData, plusIcon, searchCellTask, taskStatusConfig } from './const'
 import { deleteTask, getColumns, getTaskList, updateTask } from '@/services/projectManagement'
 import { HttpStatusCode } from 'axios'
 import TaskModal from '../TaskModal'
 import { PlusOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { TaskModalMode } from '../ProjectModal/const'
+import './index.less'
 
 interface Props {
   activeKey: string
@@ -22,12 +23,12 @@ interface Props {
 
 const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undefined>) => {
   const { activeKey } = props
-  const [columns, setColumns] = useState<ProColumns<any>[]>([])
+  const [columns, setColumns] = useState<ProColumns<TaskTableData>[]>([])
   const [isOpenTaskModal, setIsOpenTaskModal] = useState<boolean>(false)
   const [currentTaskId, setCurrentTaskId] = useState<string>('')
   const [parentTaskId, setParentTaskId] = useState<string>('')
-  const [taskTreeData, setTaskTreeData] = useState<any[]>([])
-  const [taskModalMode, setTaskModalMode] = useState<TaskModalMode>()
+  const [taskTreeData, setTaskTreeData] = useState<Task[]>([])
+  const [taskModalMode, setTaskModalMode] = useState<TaskModalMode>('add')
   const actionRef = useRef<ActionType>()
 
   useEffect(() => {
@@ -41,11 +42,17 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   }), [])
 
   // 处理鼠标进入任务单元格
-  const handlePlusIconMouseEnter = (record, column) => {
+  const handlePlusIconMouseEnter = (record: TaskTableData, column: TaskColumn) => {
+    const els = document.querySelectorAll('.add-task-icon')
+    if (els) {
+      els.forEach(el => {
+        el.remove()
+      })
+    }
     const currentTask = record[column.columnId]
     // 如果当前单元格没有任务, 则不显示增加任务图标
     if (!currentTask) return
-    const cell = document.getElementById(`task-cell-${currentTask.taskId}`)?.parentElement;
+    const cell = document.getElementById(`task-cell-${currentTask.taskId}`)?.parentElement!;
     const cellRect = cell.getBoundingClientRect();
     const rightPlusIcon = document.createElement('div'); // 右侧增加任务图标
     const buttomPlusIcon = document.createElement('div'); // 底部增加任务图标
@@ -80,6 +87,11 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
     // 渲染增加任务图标
     document.body.appendChild(rightPlusIcon);
     document.body.appendChild(buttomPlusIcon);
+
+    // 若为点击任务
+    setCurrentTaskId(currentTask.taskId)
+    setParentTaskId(currentTask.parentTaskId)
+    setTaskModalMode('update')
   };
 
   // 处理鼠标离开任务单元格事件
@@ -99,12 +111,12 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   };
 
   // 生成动态列
-  const generateColumns: ProColumns<any[]> = (columnsData: any[]) => {
-    const columns: ProColumns<any>[] = columnsData.map((column, columnIndex) => {
+  const generateColumns = (columnsData: TaskColumn[]) => {
+    const columns: ProColumns<TaskTableData>[] = columnsData.map((column, columnIndex) => {
       return {
         title: column.columnName,
         dataIndex: column.columnId,
-        onCell: (record: any, rowIndex: number) => {
+        onCell: (record, rowIndex) => {
           return {
             rowSpan: Object.values(record)[columnIndex]?.rowSpan,
             colSpan: 1,
@@ -113,8 +125,8 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
           };
         },
         render(dom, entity, index, action, schema) {
-          return (<div id={`task-cell-${dom.taskId}`}>
-            {dom.taskName}
+          return (<div onClick={() => setIsOpenTaskModal(true)} className='task-cell' id={`task-cell-${(dom as unknown as Task).taskId}`}>
+            {(dom as unknown as Task).taskName}
           </div>)
         },
       }
@@ -123,12 +135,12 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   }
 
   // 固定的列
-  const initColumn: ProColumns<any>[] = [
+  const initColumn: ProColumns<TaskTableData>[] = [
     {
       title: '状态',
       dataIndex: 'status',
       render(dom, entity, index, action, schema) {
-        const currentTask = Object.values(entity).at(-1)
+        const currentTask = Object.values(entity).at(-1)!
         const currentTaskConfig = taskStatusConfig[TaskStatusEnum[currentTask.status] as keyof typeof taskStatusConfig]
         return <Tag color={currentTaskConfig.color}>{currentTaskConfig.text}</Tag>
       },
@@ -137,10 +149,10 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       title: '操作',
       valueType: 'option',
       render(dom, entity, index, action, schema) {
-        const currentTask = Object.values(entity).at(-1)
+        const currentTask = Object.values(entity).at(-1)!
         return [
-          <Button type='link' onClick={() => handleDoneTask(currentTask.taskId)}>完成</Button>,
-          <Button type='link' onClick={() => handleEditTask(entity, currentTask)}>编辑</Button>,
+          <Button type='link' disabled={currentTask.status === TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId,TaskStatusEnum.Completed)}>完成</Button>,
+          <Button type='link' disabled={currentTask.status !== TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId,TaskStatusEnum.InProgress)}>激活</Button>,
           <Button type='link' onClick={() => handleDeleteTask(currentTask.taskId)}>删除</Button>,
         ]
       },
@@ -148,9 +160,9 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   ]
 
   // 完成任务的回调
-  const handleDoneTask = async (tid: string) => {
+  const changeTaskStatus = async (tid: string,status:TaskStatusEnum) => {
     try {
-      const { code } = await updateTask({ taskId: tid, status: TaskStatusEnum.Completed })
+      const { code } = await updateTask({ taskId: tid, status })
       if (code === HttpStatusCode.Ok) {
         actionRef.current?.reload()
       }
@@ -171,7 +183,7 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
     }
   }
 
-  const handleEditTask = async (record: any[], task: any) => {
+  const handleEditTask = async (record: TaskTableData, task: Task) => {
     setCurrentTaskId(task.taskId)
     setParentTaskId(task.parentTaskId)
     setTaskModalMode('update')
@@ -205,23 +217,24 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   }
 
   return (
-    <div>
+    <div className='task-list-page'>
       {
-        !taskTreeData.length ? <Button type='dashed' onClick={() => {setIsOpenTaskModal(true);setTaskModalMode('add')}}>添加任务</Button> : null
+        !taskTreeData.length ? <Button type='dashed' onClick={() => { setIsOpenTaskModal(true); setTaskModalMode('add') }}>添加任务</Button> : null
       }
       {taskTreeData.length
-        ? <ProTable
+        ? <ProTable<TaskTableData>
           columns={columns}
           request={(par) => handleGetTaskList(par)}
           actionRef={actionRef}
-          rowKey={(record, index) => { return Object.values(record).at(-1).taskId + index }}
+          rowKey={(record, index) => { return Object.values(record).at(-1)!.taskId + index }}
           search={false}
           options={false}
+          scroll={{x: 'max-content'}}
         />
         : null
       }
       {
-        isOpenTaskModal && <TaskModal taskModalMode={taskModalMode}  taskTreeData={taskTreeData} parentTaskId={parentTaskId} currentProjectId={activeKey} isOpen={isOpenTaskModal} onClose={handleCloseTaskModal} taskId={currentTaskId} />
+        isOpenTaskModal && <TaskModal taskModalMode={taskModalMode} taskTreeData={taskTreeData} parentTaskId={parentTaskId} currentProjectId={activeKey} isOpen={isOpenTaskModal} onClose={handleCloseTaskModal} taskId={currentTaskId} />
       }
     </div>
   )

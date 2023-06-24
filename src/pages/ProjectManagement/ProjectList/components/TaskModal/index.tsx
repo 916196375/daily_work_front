@@ -2,20 +2,21 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-17 12:15:31
  * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-22 18:03:26
+ * @LastEditTime: 2023-06-24 22:27:35
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\components\TaskModal\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { isRequired } from '@/utils/form'
 import { ModalForm, ProForm, ProFormCascader, ProFormDatePicker, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
-import { Button, Form, Input, Modal, Space } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Button, Form, Input, Modal, Space, message } from 'antd'
+import React, { MouseEvent, useEffect, useState } from 'react'
 import { AddTaskForm, findParentTask } from './const'
 import { addProject, addTask, getTaskDetail, updateTask } from '@/services/projectManagement'
 import { HttpStatusCode } from 'axios'
-import { UpdateTaskParams } from '../TaskTable/const'
+import { Task, UpdateTaskParams } from '../TaskTable/const'
 import { TaskModalMode } from '../ProjectModal/const'
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
+import { MinusCircleOutlined, PlusOutlined, CopyOutlined } from '@ant-design/icons'
+import './index.less'
 
 interface Props {
   isOpen: boolean
@@ -24,7 +25,7 @@ interface Props {
   taskId?: string
   currentProjectId: string
   parentTaskId: string
-  taskTreeData: any[]
+  taskTreeData: Task[]
   taskModalMode: TaskModalMode
 }
 
@@ -33,7 +34,7 @@ const TaskModal = (props: Props) => {
   const [form] = Form.useForm()
   useEffect(() => {
     form.setFieldsValue({ parentTaskId: parentTaskId })
-    taskModalMode === 'update' && handleGetTaskDetail(taskId)
+    taskModalMode === 'update' && handleGetTaskDetail(taskId!)
   }, [parentTaskId, taskId])
 
   const handleGetTaskDetail = async (taskId: string) => {
@@ -44,8 +45,12 @@ const TaskModal = (props: Props) => {
     }
   }
 
-  const handleUpdateTask = async (values: any) => {
-    const query: UpdateTaskParams = { ...values, projectId: currentProjectId, taskId }
+  const handleUpdateTask = async (values: AddTaskForm) => {
+    if (taskId === undefined) {
+      message.error('修改任务失败,任务id不存在')
+      return false
+    }
+    const query: UpdateTaskParams = { ...values, taskId }
     if (query.parentTaskId || query.parentTaskId === undefined) {
       if (query.parentTaskId === undefined) {
         query.parentTaskId = ''
@@ -85,8 +90,31 @@ const TaskModal = (props: Props) => {
     }
   }
 
+  /**
+   * 
+   * @param path [name, key],  [行号,键名]
+   */
+  const handleCopyCustomItem = (path: [number, string]) => {
+    const [rowIndex, key] = path
+    const target = form.getFieldValue('customItemList')[rowIndex][key]
+    if ('clipboard' in navigator) {
+      navigator.clipboard.writeText(target).then(() => {
+        message.success('复制成功!')
+      }, () => {
+        message.error('复制失败,请尝试手动复制!')
+      }).catch(e => { console.log(e) })
+    } else {
+      const copyiedResult = document.execCommand('copy', false, target)
+      if (copyiedResult) {
+        message.success('复制成功!')
+      } else {
+        message.error('复制失败,请尝试手动复制!')
+      }
+    }
+  }
+
   return (
-    <div>
+    <div className='task-modal-page'>
       <ModalForm<AddTaskForm>
         form={form}
         open={isOpen}
@@ -95,6 +123,7 @@ const TaskModal = (props: Props) => {
           onCancel: onClose,
           onOk: form.submit,
           okText: taskModalMode === 'update' ? '保存' : '新增',
+          className: 'task-modal-modal',
         }}
         onFinish={taskModalMode === 'update' ? handleUpdateTask : handleAddTask}
         layout='horizontal'
@@ -117,26 +146,26 @@ const TaskModal = (props: Props) => {
         <Form.List name="customItemList">
           {(fields, { add, remove }) => (
             <>
-              {fields.map(({ key, name, ...restField }) => (
+              {fields.map(({ key, name, ...restField }, index) => (
                 <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
                   <Form.Item
                     {...restField}
                     name={[name, 'key']}
                   >
-                    <Input placeholder="" />
+                    <Input suffix={<CopyOutlined className='copy-btn' onClick={() => handleCopyCustomItem([name, 'key'])} />} placeholder="" />
                   </Form.Item>
                   <Form.Item
                     {...restField}
                     name={[name, 'value']}
                   >
-                    <Input placeholder="" />
+                    <Input suffix={<CopyOutlined className='copy-btn' onClick={() => handleCopyCustomItem([name, 'value'])} />} style={{ width: '100%' }} placeholder="" />
                   </Form.Item>
                   <MinusCircleOutlined onClick={() => remove(name)} />
                 </Space>
               ))}
               <Form.Item>
                 <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                  添加项
+                  新增项
                 </Button>
               </Form.Item>
             </>
