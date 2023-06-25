@@ -1,18 +1,21 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-17 10:56:04
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-22 00:26:27
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-25 15:26:35
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\components\ProjectModal\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 
 import { isRequired } from '@/utils/form'
 import { ModalForm, ProFormDatePicker, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
-import { Form, Modal } from 'antd'
-import React, { useState } from 'react'
+import { Form, Modal, message } from 'antd'
+import React, { useEffect, useState } from 'react'
 import { AddProjectParams } from './const'
-import { addProject } from '@/services/projectManagement'
+import { addProject, getProjectDetail } from '@/services/projectManagement'
+import { HttpStatusCode } from 'axios'
+
+
 
 interface Props {
   isOpen: boolean
@@ -24,6 +27,10 @@ interface Props {
 const ProjectModal = (props: Props) => {
   const { isOpen, onClose, onConfirm, projectId } = props
   const [form] = Form.useForm()
+
+  useEffect(() => {
+    projectId && handleGetProjectDetail(projectId)
+  }, [projectId])
 
   const handleCommit = async (values: AddProjectParams) => {
     try {
@@ -37,6 +44,19 @@ const ProjectModal = (props: Props) => {
     }
     onClose()
   }
+
+  const handleGetProjectDetail = async (projectId: string) => {
+    try {
+      const { code, result } = await getProjectDetail({ projectId })
+      if (code === HttpStatusCode.Ok) {
+        form.setFieldsValue(result)
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+
 
   return (
     <div>

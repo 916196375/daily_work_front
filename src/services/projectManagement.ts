@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo liuhongbo@dip-ai.com
  * @Date: 2023-06-19 09:34:47
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-24 20:35:56
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-25 15:25:24
  * @FilePath: /daily_work_front/src/services/projectManagement.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -22,6 +22,14 @@ export async function addProject(params: AddProjectParams) {
 
 export async function deleteProject(params: { projectId: string }) {
     return request.post<null>('/project/delete', params, { promptMessage: true })
+}
+
+export async function sortProject(params: { projectIds: string[] }) {
+    return request.post<null>('/project/order', params, { promptMessage: true })
+}
+
+export async function getProjectDetail(params: { projectId: string }) {
+    return request.get<Project>('/project/detail', params)
 }
 
 export async function getTaskList(params: { projectId: string }) {
@@ -47,3 +55,4 @@ export async function deleteTask(params: { taskId: string }) {
 export async function getTaskDetail(params: { taskId: string }) {
     return request.get<Task>('/task/detail', params)
 }
+

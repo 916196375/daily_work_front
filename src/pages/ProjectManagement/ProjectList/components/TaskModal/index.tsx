@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-17 12:15:31
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-24 22:27:35
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-25 17:23:26
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\components\TaskModal\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -10,7 +10,7 @@ import { isRequired } from '@/utils/form'
 import { ModalForm, ProForm, ProFormCascader, ProFormDatePicker, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
 import { Button, Form, Input, Modal, Space, message } from 'antd'
 import React, { MouseEvent, useEffect, useState } from 'react'
-import { AddTaskForm, findParentTask } from './const'
+import { AddTaskForm, findParentTaskPath } from './const'
 import { addProject, addTask, getTaskDetail, updateTask } from '@/services/projectManagement'
 import { HttpStatusCode } from 'axios'
 import { Task, UpdateTaskParams } from '../TaskTable/const'
@@ -33,14 +33,15 @@ const TaskModal = (props: Props) => {
   const { isOpen, onClose, onConfirm, taskId, currentProjectId, parentTaskId, taskTreeData, taskModalMode } = props
   const [form] = Form.useForm()
   useEffect(() => {
-    form.setFieldsValue({ parentTaskId: parentTaskId })
+    form.setFieldsValue({ parentTaskId: findParentTaskPath(taskTreeData, parentTaskId) })
     taskModalMode === 'update' && handleGetTaskDetail(taskId!)
   }, [parentTaskId, taskId])
 
   const handleGetTaskDetail = async (taskId: string) => {
     const { code, result } = await getTaskDetail({ taskId })
     if (code === HttpStatusCode.Ok) {
-      const currentTaskPath = findParentTask(taskTreeData, parentTaskId)
+      const currentTaskPath = findParentTaskPath(taskTreeData, parentTaskId)
+      console.log('currentTaskPath', currentTaskPath)
       form.setFieldsValue({ ...result, parentTaskId: currentTaskPath })
     }
   }
@@ -75,7 +76,6 @@ const TaskModal = (props: Props) => {
       if (query.parentTaskId === undefined) {
         query.parentTaskId = ''
       } else {
-        console.log('query.parentTaskId', query.parentTaskId)
         query.parentTaskId = Array.isArray(query.parentTaskId) ? query.parentTaskId.at(-1) ?? '' : query.parentTaskId
       }
     }
@@ -171,6 +171,7 @@ const TaskModal = (props: Props) => {
             </>
           )}
         </Form.List>
+
         {
           taskId && <ProFormCascader
             name="parentTaskId"

@@ -30,7 +30,7 @@ export interface AddTaskForm {
 }
 
 // 寻找父任务的路径(不包含子任务)
-export const findParentTask = (treeData: Task[], taskId: string) => {
+export const findParentTaskPath = (treeData: Task[], taskId: string) => {
     try {
         const findTaskPath = (treeData: Task[], taskId: string, idPath: string[] = []) => {
             return treeData.forEach(item => {

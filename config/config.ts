@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo liuhongbo@dip-ai.com
  * @Date: 2023-06-11 17:49:17
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-17 11:15:00
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-25 18:30:20
  * @FilePath: /daily_work_front/config/config.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -47,7 +47,7 @@ export default defineConfig({
     // routes: routes,
     proxy:  {
         '/api': {
-          'target': 'http://127.0.0.1:3000',
+          'target': 'http://127.0.0.1:3101',
           'changeOrigin': true,
           'pathRewrite': { '^/api' : '' },
         }
