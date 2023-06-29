@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-24 22:26:19
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-29 18:08:31
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\TaskTable\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -19,10 +19,11 @@ import './index.less'
 
 interface Props {
   activeKey: string
+  handleOpenNotion: () => void
 }
 
 const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undefined>) => {
-  const { activeKey } = props
+  const { activeKey, handleOpenNotion } = props
   const [columns, setColumns] = useState<ProColumns<TaskTableData>[]>([])
   const [isOpenTaskModal, setIsOpenTaskModal] = useState<boolean>(false)
   const [currentTaskId, setCurrentTaskId] = useState<string>('')
@@ -151,8 +152,8 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       render(dom, entity, index, action, schema) {
         const currentTask = Object.values(entity).at(-1)!
         return [
-          <Button type='link' disabled={currentTask.status === TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId,TaskStatusEnum.Completed)}>完成</Button>,
-          <Button type='link' disabled={currentTask.status !== TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId,TaskStatusEnum.InProgress)}>激活</Button>,
+          <Button type='link' disabled={currentTask.status === TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId, TaskStatusEnum.Completed)}>完成</Button>,
+          <Button type='link' disabled={currentTask.status !== TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId, TaskStatusEnum.InProgress)}>激活</Button>,
           <Button type='link' onClick={() => handleDeleteTask(currentTask.taskId)}>删除</Button>,
         ]
       },
@@ -160,7 +161,7 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
   ]
 
   // 完成任务的回调
-  const changeTaskStatus = async (tid: string,status:TaskStatusEnum) => {
+  const changeTaskStatus = async (tid: string, status: TaskStatusEnum) => {
     try {
       const { code } = await updateTask({ taskId: tid, status })
       if (code === HttpStatusCode.Ok) {
@@ -229,7 +230,11 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
           rowKey={(record, index) => { return Object.values(record).at(-1)!.taskId + index }}
           search={false}
           options={false}
-          scroll={{x: 'max-content'}}
+          scroll={{ x: 'max-content' }}
+          toolBarRender={() => [
+            <Button type='primary' onClick={handleOpenNotion}>项目便签</Button>
+          ]
+          }
         />
         : null
       }

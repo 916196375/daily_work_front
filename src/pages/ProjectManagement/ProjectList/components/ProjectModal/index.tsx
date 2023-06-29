@@ -2,20 +2,18 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-17 10:56:04
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-25 15:26:35
+ * @LastEditTime: 2023-06-28 17:26:28
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\components\ProjectModal\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 
 import { isRequired } from '@/utils/form'
 import { ModalForm, ProFormDatePicker, ProFormText, ProFormTextArea } from '@ant-design/pro-components'
-import { Form, Modal, message } from 'antd'
+import { Form, message } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { AddProjectParams } from './const'
-import { addProject, getProjectDetail } from '@/services/projectManagement'
+import { ProjectFormProps, } from './const'
+import { addProject, getProjectDetail, updateProject } from '@/services/projectManagement'
 import { HttpStatusCode } from 'axios'
-
-
 
 interface Props {
   isOpen: boolean
@@ -32,17 +30,16 @@ const ProjectModal = (props: Props) => {
     projectId && handleGetProjectDetail(projectId)
   }, [projectId])
 
-  const handleCommit = async (values: AddProjectParams) => {
+  const handleAddProject = async (values: ProjectFormProps) => {
     try {
       const { code } = await addProject(values)
-      if (code === 200) {
+      if (code === HttpStatusCode.Ok) {
         onConfirm && onConfirm()
         onClose()
       }
     } catch (error) {
       console.log('error', error)
     }
-    onClose()
   }
 
   const handleGetProjectDetail = async (projectId: string) => {
@@ -56,11 +53,23 @@ const ProjectModal = (props: Props) => {
     }
   }
 
+  const handleUpdateProject = async (values: ProjectFormProps) => {
+    if (!projectId) return message.error('未找到项目，请重试！')
+    try {
+      const { code } = await updateProject({ ...values, projectId })
+      if (code === HttpStatusCode.Ok) {
+        onConfirm && onConfirm()
+        onClose()
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
 
   return (
     <div>
-      <ModalForm<AddProjectParams>
+      <ModalForm<ProjectFormProps>
         form={form}
         open={isOpen}
         modalProps={{
@@ -69,7 +78,7 @@ const ProjectModal = (props: Props) => {
           onOk: form.submit,
           okText: projectId ? '保存' : '新增',
         }}
-        onFinish={handleCommit}
+        onFinish={projectId ? handleUpdateProject : handleAddProject}
         layout='horizontal'
         title={projectId ? '编辑项目' : '新增项目'}
       >

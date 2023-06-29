@@ -2,7 +2,7 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-25 16:51:47
+ * @LastEditTime: 2023-06-29 18:12:48
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AEu
  */
@@ -25,6 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { css } from '@emotion/css';
+import NotionDrawer from './components/NotionDrawer'
 interface DraggableTabPaneProps extends React.HTMLAttributes<HTMLDivElement> {
     'data-node-key': string;
     onActiveBarTransform: (className: string) => void;
@@ -67,13 +68,14 @@ const DraggableTabNode = ({ className, onActiveBarTransform, ...props }: Draggab
 const PrjectList = () => {
     const [tabsItems, setTabsItems] = useState<ProjectListTab[]>([])
     const [activeKey, setActiveKey] = useState<string>('')
-    const tab = useRef()
+    const tab = useRef<string>()
     const [isOpenProjectModal, setIsOpenProjectModal] = useState<boolean>(false)
     const [currentClickProjectId, setCurrentClickProjectId] = useState<string>('')
     const [className, setClassName] = useState('');
+    const [isOpenNotionDrawer, setIsOpenNotionDrawer] = useState<boolean>(false)
     const sensor = useSensor(PointerSensor, { activationConstraint: { distance: { x: 10 } } });
+    const [tabsData, setTabsData] = useState<Project[]>([])
     const tableRef = useRef<{ reload: () => void }>()
-
     useEffect(() => {
         getTabsList()
     }, [])
@@ -122,6 +124,7 @@ const PrjectList = () => {
                         label: <span onClick={() => handleClickProjectTab(project.projectId)}>{project.projectName}</span>,
                     }
                 })
+                setTabsData(result)
                 setTabsItems(tabs)
                 !activeKey && setActiveKey(tabs[0].key)
             }
@@ -192,16 +195,33 @@ const PrjectList = () => {
                     </DndContext>
                 )}
             />
+            {/* 空项目判断 */}
             {!tabsItems.length ?
                 <Result
                     icon={<SmileOutlined />}
                     title="欢迎使用Daily Work,请先添加项目!"
                 />
                 : null}
-            {tabsItems.length ? <ProjectTaskTable ref={tableRef} activeKey={activeKey} /> : null}
+            {/* 任务列表 */}
+            {tabsItems.length ?
+                <ProjectTaskTable ref={tableRef} activeKey={activeKey} handleOpenNotion={() => setIsOpenNotionDrawer(true)} />
+                : null}
+            {/* 项目弹窗 */}
             {
-                isOpenProjectModal && <ProjectModal isOpen={isOpenProjectModal} projectId={currentClickProjectId} onClose={handleCloseProjectModal} />
+                isOpenProjectModal &&
+                <ProjectModal isOpen={isOpenProjectModal} projectId={currentClickProjectId} onClose={handleCloseProjectModal} />
             }
+            {/* 便签 */}
+            {
+                isOpenNotionDrawer &&
+                <NotionDrawer
+                    projectId={activeKey}
+                    isOpen={isOpenNotionDrawer}
+                    onClose={() => setIsOpenNotionDrawer(false)}
+                    projectName={tabsData.find(tab => tab.projectId === activeKey)!.projectName!}
+                />
+            }
+
         </div>
     )
 }

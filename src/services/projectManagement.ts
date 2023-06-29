@@ -2,10 +2,12 @@
  * @Author: liuhongbo liuhongbo@dip-ai.com
  * @Date: 2023-06-19 09:34:47
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-25 15:25:24
+ * @LastEditTime: 2023-06-29 17:54:40
  * @FilePath: /daily_work_front/src/services/projectManagement.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
+import { AddNotionParams } from "@/pages/ProjectManagement/ProjectList/components/NotionDrawer/component/AddNotionForm/const"
+import { Notion, UpdateNotionParams } from "@/pages/ProjectManagement/ProjectList/components/NotionDrawer/const"
 import { AddProjectParams } from "@/pages/ProjectManagement/ProjectList/components/ProjectModal/const"
 import { AddTaskParams } from "@/pages/ProjectManagement/ProjectList/components/TaskModal/const"
 import { Task, TaskColumn, UpdateTaskParams } from "@/pages/ProjectManagement/ProjectList/components/TaskTable/const"
@@ -22,6 +24,10 @@ export async function addProject(params: AddProjectParams) {
 
 export async function deleteProject(params: { projectId: string }) {
     return request.post<null>('/project/delete', params, { promptMessage: true })
+}
+
+export async function updateProject(params: { projectId: string }) {
+    return request.post<null>('/project/update', params, { promptMessage: true })
 }
 
 export async function sortProject(params: { projectIds: string[] }) {
@@ -56,3 +62,18 @@ export async function getTaskDetail(params: { taskId: string }) {
     return request.get<Task>('/task/detail', params)
 }
 
+export async function getNotionList(params: { projectId: string }) {
+    return request.get<Notion[]>('/notion/list', params)
+}
+
+export async function updateNotion(params: UpdateNotionParams) {
+    return request.post<null>('/notion/update', params)
+}
+
+export async function deleteNotion(params: { notionId: string }) {
+    return request.post<null>('/notion/delete', params)
+}
+
+export async function addNotion(params: AddNotionParams) {
+    return request.post<null>('/notion/add', params, { promptMessage: true })
+}

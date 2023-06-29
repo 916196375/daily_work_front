@@ -2,7 +2,7 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-25 18:40:13
+ * @LastEditTime: 2023-06-26 09:55:03
  * @FilePath: \daily-word-front\config\const.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -21,8 +21,8 @@ const isProduction = process.env.REACT_APP_ENV === 'production' ? true : false
 const publicPath = '/'
 const base = '/'
 
-const web_doman = isProduction ? 'http://localhost:3101' : isTest ? 'http://139.155.5.202:3101' : 'http://localhost:3101'
-const admin_doman = isProduction ? 'http://localhost:3101' : isTest ? 'http://139.155.5.202:3101' : 'http://localhost:3101'
+const web_doman = isProduction ? 'http://localhost:3101' : isTest ? 'http://localhost:3101' : 'http://localhost:3101'
+const admin_doman = isProduction ? 'http://localhost:3101' : isTest ? 'http://localhost:3101' : 'http://localhost:3101'
 
 const X_API_KEY = 'Other'
 const perfixApiWeb = '/api'
