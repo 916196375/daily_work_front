@@ -2,7 +2,7 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-29 18:08:31
+ * @LastEditTime: 2023-06-30 15:33:51
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\TaskTable\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -152,8 +152,9 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       render(dom, entity, index, action, schema) {
         const currentTask = Object.values(entity).at(-1)!
         return [
+          currentTask.status !== TaskStatusEnum.InProgress ? <Button type='link' disabled={false} onClick={() => changeTaskStatus(currentTask.taskId, TaskStatusEnum.InProgress)}>开始</Button> : null,
           <Button type='link' disabled={currentTask.status === TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId, TaskStatusEnum.Completed)}>完成</Button>,
-          <Button type='link' disabled={currentTask.status !== TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId, TaskStatusEnum.InProgress)}>激活</Button>,
+          currentTask.status === TaskStatusEnum.Completed ? <Button type='link' disabled={currentTask.status !== TaskStatusEnum.Completed} onClick={() => changeTaskStatus(currentTask.taskId, TaskStatusEnum.InProgress)}>激活</Button> : null,
           <Button type='link' onClick={() => handleDeleteTask(currentTask.taskId)}>删除</Button>,
         ]
       },

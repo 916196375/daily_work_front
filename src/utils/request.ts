@@ -1,15 +1,15 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-16 10:05:26
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-17 10:55:47
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-30 09:57:10
  * @FilePath: \daily-word-front\src\utils\request.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 
 import { message } from 'antd'
 import axios, { AxiosHeaders, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse, HttpStatusCode, InternalAxiosRequestConfig } from 'axios'
-import { X_API_KEY, perfixApiWeb, web_doman } from '../../config/const'
+import { X_API_KEY, login_domain, perfixApiWeb, web_doman } from '../../config/const'
 import { LocalKey, RedirectKey, TokenKey, getCookie, removeCookie } from './cookies'
 import uuid from './uuid'
 
@@ -95,7 +95,6 @@ instance.interceptors.request.use(
         const token = getCookie(TokenKey)
         const lang = getCookie(LocalKey)
         if (token) {
-            // headers[TokenKey] = 'Bearer ' + token
             headers['X-REQUEST-ID'] = uuid()
             headers['X-API-KEY'] = X_API_KEY
             headers['X-LANGUAGE'] = lang
@@ -219,9 +218,9 @@ const cancelAllRequest = () => {
 
 // 重定向 - 清除 token
 const redirect = () => {
-    // cancelAllRequest()
-    // removeCookie(TokenKey)
-    // window.location.href = getCookie(RedirectKey) || web_doman
+    cancelAllRequest()
+    removeCookie(TokenKey)
+    window.location.href = login_domain
 }
 
 const get = <T>(url = '', params = {}, config: Partial<IInternalAxiosRequestConfig> = {}) => {

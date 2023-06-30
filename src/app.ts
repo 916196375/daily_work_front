@@ -13,12 +13,3 @@
 export async function getInitialState(): Promise<{ name: string }> {
   return { name: 'Daily Work' };
 }
-
-export const layout = () => {
-  return {
-    logo: '',
-    menu: {
-      locale: false,
-    },
-  };
-};

@@ -13,6 +13,7 @@ export const projectManagement = [
     {
         path: routers.projectList,
         name: '项目管理',
+        icon:'project_managemnt',
         routes: [
             {
                 path: routers.projectList,

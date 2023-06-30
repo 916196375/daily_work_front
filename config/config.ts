@@ -22,11 +22,7 @@ export default defineConfig({
     model: {},
     initialState: {},
     request: {},
-    layout: {
-        title: "Daily Work",
-        favicons: ['/favicon.png'],
-
-    },
+    layout: false,
     routes: routes,
     npmClient: "pnpm",
     // tailwindcss: {},

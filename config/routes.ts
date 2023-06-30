@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-06-16 10:50:33
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-06-30 11:44:41
  * @FilePath: \daily-word-front\config\routes.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -13,6 +13,7 @@ export const layoutsRoutes = [
     {
         path: routers.root,
         name: '首页',
+        icon:'home',
         routes: [
             {
                 path: '',
@@ -30,9 +31,14 @@ export const layoutsRoutes = [
         path: '*',
         redirect: routers.root,
     },
+
+]
+
+export const voidRoutes = [
     {
         path: routers.login,
         name: '登录',
+        hideInMenu: true,
         routes: [
             {
                 path: '',
@@ -42,11 +48,13 @@ export const layoutsRoutes = [
     },
 ]
 
-const voidRoutes = [
+export default [
     {
-        path: routers.login,
-        component: '@/pages/Login',
+      component: '@/layouts/VoidLayout',
+      routes: voidRoutes,
     },
-]
-
-export default layoutsRoutes
+    {
+      component: '@/layouts/BaseLayout',
+      routes: layoutsRoutes,
+    },
+  ]
