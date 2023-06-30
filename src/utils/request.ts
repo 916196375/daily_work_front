@@ -2,7 +2,7 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-16 10:05:26
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-30 09:57:10
+ * @LastEditTime: 2023-06-30 18:49:54
  * @FilePath: \daily-word-front\src\utils\request.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -91,14 +91,20 @@ const request = async <T>(config: AxiosRequestConfig): Promise<IResponse<T>> => 
 instance.interceptors.request.use(
     (config: IInternalAxiosRequestConfig) => {
         const { baseURL, url, headers, allowDuplicate } = config
+        console.log('baseURL', baseURL)
+        // console.log('url', url)
         // console.log('请求拦截', config)
         const token = getCookie(TokenKey)
         const lang = getCookie(LocalKey)
-        if (token) {
+        if (token || baseURL) {
             headers['X-REQUEST-ID'] = uuid()
             headers['X-API-KEY'] = X_API_KEY
             headers['X-LANGUAGE'] = lang
             headers.Authorization = 'Bearer ' + token
+        } else if(baseURL === '/auth/login'){
+            headers['X-REQUEST-ID'] = uuid()
+            headers['X-API-KEY'] = X_API_KEY
+            headers['X-LANGUAGE'] = lang
         } else {
             redirect()
             return config
