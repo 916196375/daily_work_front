@@ -1,18 +1,18 @@
 /*
  * @Author: liuhongbo liuhongbo@dip-ai.com
  * @Date: 2023-06-11 17:51:11
- * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-30 18:15:42
+ * @LastEditors: liuhongbo 916196375@qq.com
+ * @LastEditTime: 2023-07-02 00:12:39
  * @FilePath: /daily_work_front/src/pages/Login/index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { isRequired } from '@/utils/form'
 import { Button, Form, Input, message } from 'antd'
 const { Password } = Input
 import { LoginForm } from './const'
-import { login } from '@/services/login'
-import { HttpStatusCode } from 'axios'
+import { login, loginPic } from '@/services/login'
+import axios, { HttpStatusCode } from 'axios'
 import { history } from '@umijs/max'
 import routers, { generateRoute } from '@/utils/routers'
 import { TokenKey, setCookie } from '@/utils/cookies'
@@ -23,7 +23,13 @@ const Login = () => {
         username: '',
         password: ''
     })
+    const [touchFinshPicUrl, setTouchFinshPicUrl] = useState<string>('')
     const [form] = Form.useForm()
+
+    useEffect(() => {
+        getLoginPicCode()
+    }, [])
+
     const handleFinish = async (values: LoginForm) => {
         const isEmpty = !Object.values(values).every(item => !!item)
         if (isEmpty) {
@@ -40,11 +46,19 @@ const Login = () => {
             console.log('error', error)
         }
     }
+
+    const getLoginPicCode = async () => {
+        const { result } = await loginPic()
+        setTouchFinshPicUrl(result.urlCode!)
+    }
+
     return (
         <div className='login-page'>
             <div className="content">
                 <div className="box-img">
-                    <div className="img-bg img1"></div>
+                    {
+                        touchFinshPicUrl ? <img className='img-bg' src={`data:image/png;base64,${touchFinshPicUrl}`} alt="" /> : <div className="img-bg img1"></div>
+                    }
                 </div>
                 <div className="box-form">
                     <div className="change-color newmimicry-protrusion">
