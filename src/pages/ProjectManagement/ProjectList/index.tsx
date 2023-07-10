@@ -14,6 +14,7 @@ import { HttpStatusCode } from 'axios'
 import { Project, ProjectListTab } from './const'
 import ProjectModal from './components/ProjectModal'
 import { SmileOutlined } from '@ant-design/icons'
+import './index.less'
 
 import type { DragEndEvent } from '@dnd-kit/core';
 import { DndContext, PointerSensor, useSensor } from '@dnd-kit/core';
@@ -169,7 +170,7 @@ const PrjectList = () => {
     }
 
     return (
-        <div>
+        <div className='project-list-main-box'>
             <Tabs
                 className={className}
                 type='editable-card'

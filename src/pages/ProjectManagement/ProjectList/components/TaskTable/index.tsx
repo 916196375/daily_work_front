@@ -2,7 +2,7 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-30 15:33:51
+ * @LastEditTime: 2023-07-03 18:28:48
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\TaskTable\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -225,13 +225,15 @@ const ProjectTaskTable = (props: Props, ref: Ref<{ reload: () => void; } | undef
       }
       {taskTreeData.length
         ? <ProTable<TaskTableData>
+          className='task-table'
           columns={columns}
           request={(par) => handleGetTaskList(par)}
           actionRef={actionRef}
           rowKey={(record, index) => { return Object.values(record).at(-1)!.taskId + index }}
           search={false}
           options={false}
-          scroll={{ x: 'max-content' }}
+          pagination={false}
+          scroll={{ x: 'max-content',y: 'calc(100vh - 270px)' }}
           toolBarRender={() => [
             <Button type='primary' onClick={handleOpenNotion}>项目便签</Button>
           ]

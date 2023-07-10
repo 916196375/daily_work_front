@@ -24,7 +24,8 @@
     "cross-env": "^7.0.3",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "webp-converter": "^2.3.3"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.3",

@@ -1,8 +1,8 @@
 /*
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-16 10:05:26
- * @LastEditors: liuhongbo 916196375@qq.com
- * @LastEditTime: 2023-07-02 00:44:17
+ * @LastEditors: liuhongbo liuhongbo@dip-ai.com
+ * @LastEditTime: 2023-07-03 15:30:51
  * @FilePath: \daily-word-front\src\utils\request.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -81,7 +81,7 @@ const instance = axios.create({
     promptMessage: false,
 } as unknown as IInternalAxiosRequestConfig)
 
-// // 请求
+// 请求
 const request = async <T>(config: AxiosRequestConfig): Promise<IResponse<T>> => {
     return instance(config)
     // return instance.request<IResponse<T>>(config)
