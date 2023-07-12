@@ -2,11 +2,11 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-15 23:39:28
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-29 18:12:48
+ * @LastEditTime: 2023-07-11 17:32:03
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AEu
  */
-import { Modal, Result, TabPaneProps, Tabs } from 'antd'
+import { Button, Modal, Result, TabPaneProps, Tabs } from 'antd'
 import React, { Ref, useEffect, useRef, useState } from 'react'
 import ProjectTaskTable from './components/TaskTable'
 import { deleteProject, getProjectList, sortProject } from '@/services/projectManagement'
@@ -150,7 +150,7 @@ const PrjectList = () => {
         }
     }
 
-    const handleEditProject = (targetKey: string | React.MouseEvent<Element, MouseEvent> | React.KeyboardEvent<Element>, action: "add" | "remove") => {
+    const handleEditProject = (action: "add" | "remove", targetKey?: string | React.MouseEvent<Element, MouseEvent> | React.KeyboardEvent<Element>) => {
         action === 'add' && setIsOpenProjectModal(true)
 
         if (action === 'remove' && typeof targetKey === 'string') {
@@ -174,7 +174,7 @@ const PrjectList = () => {
             <Tabs
                 className={className}
                 type='editable-card'
-                onEdit={handleEditProject}
+                onEdit={(e, action) => handleEditProject(action, e)}
                 items={tabsItems}
                 onChange={handleTabChange}
                 activeKey={activeKey}
@@ -200,7 +200,10 @@ const PrjectList = () => {
             {!tabsItems.length ?
                 <Result
                     icon={<SmileOutlined />}
-                    title="欢迎使用Daily Work,请先添加项目!"
+                    title={<div>
+                        <p>欢迎使用Daily Work,请先添加项目!</p>
+                        <Button className='empty-project-notion-btn' type='primary' onClick={() => handleEditProject('add')}>添加项目</Button>
+                    </div>}
                 />
                 : null}
             {/* 任务列表 */}

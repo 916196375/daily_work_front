@@ -2,7 +2,7 @@
  * @Author: liuhongbo 916196375@qq.com
  * @Date: 2023-06-17 10:56:04
  * @LastEditors: liuhongbo liuhongbo@dip-ai.com
- * @LastEditTime: 2023-06-28 17:26:28
+ * @LastEditTime: 2023-07-11 17:47:19
  * @FilePath: \daily-word-front\src\pages\ProjectManagement\ProjectList\components\ProjectModal\index.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -78,6 +78,7 @@ const ProjectModal = (props: Props) => {
           onOk: form.submit,
           okText: projectId ? '保存' : '新增',
         }}
+        labelCol={{ span: 3,offset: 1 }}
         onFinish={projectId ? handleUpdateProject : handleAddProject}
         layout='horizontal'
         title={projectId ? '编辑项目' : '新增项目'}
